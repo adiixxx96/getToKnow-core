@@ -1,0 +1,172 @@
+package com.adape.gtk.core.dao.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Order;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
+import jakarta.validation.ConstraintViolationException;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.adape.gtk.core.client.beans.CustomException;
+import com.adape.gtk.core.client.beans.Filter;
+import com.adape.gtk.core.client.beans.GroupFilter;
+import com.adape.gtk.core.client.beans.Page;
+import com.adape.gtk.core.client.beans.Response;
+import com.adape.gtk.core.client.beans.Sorting;
+
+import com.adape.gtk.core.dao.TagByEventDao;
+import com.adape.gtk.core.dao.entity.TagByEvent;
+import com.adape.gtk.core.dao.entity.TagByEvent.TagByEventId;
+import com.adape.gtk.core.dao.entity.repository.TagByEventRepository;
+import com.adape.gtk.core.utils.Constants;
+import com.adape.gtk.core.utils.QueryUtils;
+
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Component
+public class TagByEventDaoImpl implements TagByEventDao{
+	
+	@Autowired
+	private TagByEventRepository tagByEventRepository;
+	@PersistenceContext
+	private EntityManager entityManager;
+	
+	@Override
+	public TagByEvent create(TagByEvent tagByEvent) throws CustomException {
+		TagByEvent newTagByEvent = null;
+		try {
+			newTagByEvent = tagByEventRepository.save(tagByEvent);
+		} catch (ConstraintViolationException cve) {
+			throw new CustomException(400, cve.getLocalizedMessage());
+		}catch (Exception e) {
+			e.printStackTrace();
+			throw new CustomException(500, e);
+		}
+		return newTagByEvent;
+	}
+
+	@Override
+	public TagByEvent edit(TagByEvent tagByEvent) throws CustomException {
+		TagByEvent newTagByEvent = null;
+		try {	
+			newTagByEvent = tagByEventRepository.save(tagByEvent);
+		} catch (ConstraintViolationException cve) {
+			throw new CustomException(400, cve.getLocalizedMessage());
+		} catch (Exception e) {
+			throw new CustomException(500, e);
+		}
+		return newTagByEvent;
+	}
+
+	@Override
+	public void delete(TagByEventId id) throws CustomException {
+		try {	
+			tagByEventRepository.deleteById(id);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new CustomException(500, e);
+		}
+	}
+
+	@Override
+	public boolean existsById(TagByEventId id) {
+		if (tagByEventRepository.existsById(id)) {
+			log.info(String.format(Constants.ENTITY_EXIST, "TagByEvent"));
+			return true;
+		} else {
+			log.info(String.format(Constants.ENTITY_NOT_EXIST, "TagByEvent"));
+			return false;
+		}
+	}
+	
+	@Override
+	public TagByEvent get(TagByEventId id) {
+		Optional<TagByEvent> optTagByEvent = tagByEventRepository.findById(id);
+		if (optTagByEvent.isEmpty()) {
+			log.info(String.format(Constants.ENTITY_GET_NOT_FOUND, "TagByEvent", "id: " + id));
+			return null;
+		} else {
+			log.info(String.format(Constants.ENTITY_GET_SUCCESSFULLY, "TagByEvent", "id: " + id));	
+			return optTagByEvent.get();
+		}
+	}
+
+	@Override
+	public List<TagByEventId> delete(List<TagByEvent> id) throws CustomException {
+		List<TagByEventId> deletedIds = new ArrayList<TagByEventId>();
+		try {
+			for (TagByEvent entity : id) {
+				tagByEventRepository.delete(entity);
+				deletedIds.add(entity.getId());
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new CustomException(500, e);
+		}
+		return deletedIds;
+	}
+
+	@Override
+	public Response<TagByEvent> get(Filter filter) throws CustomException {
+		CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+		CriteriaQuery<TagByEvent> query = criteriaBuilder.createQuery(TagByEvent.class);
+		Root<TagByEvent> root = query.from(TagByEvent.class);
+		List<Predicate> predicates = new ArrayList<>();
+		GroupFilter filters = filter.getGroupFilter();
+		Page page = filter.getPage();
+		List<Sorting> sorting = filter.getSorting();
+		List<String> errors = new ArrayList<String>();
+		
+		predicates = QueryUtils.generatePredicate(filters, criteriaBuilder, root, errors, query);
+		
+		if (sorting.size() > 0) {
+			try {
+				List<Order> orderList = QueryUtils.getSorting(sorting, criteriaBuilder, root);
+				query.orderBy(orderList);	
+			} catch (Exception e) {
+				throw new CustomException(500, e);
+			}
+		}
+		
+		Integer pageNo = page.getPageNo();
+		Integer pageSize = page.getPageSize();
+		if (null == pageNo) {
+			errors.add(String.format(Constants.ENTITY_REQUIRED, "pageNo"));
+		}
+		if (null == pageSize) {
+			errors.add(String.format(Constants.ENTITY_REQUIRED, "pageSize"));
+		}
+		
+		
+		if (errors.size() > 0) {
+			throw new CustomException(400, errors);
+		}
+		try {
+			
+			CriteriaQuery<TagByEvent> selectCount = query.select(root.get("id")).distinct(true).where(predicates.toArray(new Predicate[predicates.size()]));
+			Long size = Long.valueOf(entityManager.createQuery(selectCount).getResultList().size());
+			
+			CriteriaQuery<TagByEvent> select = query.select(root).distinct(true).where(predicates.toArray(new Predicate[predicates.size()]));
+			TypedQuery<TagByEvent> typedQuery = entityManager.createQuery(select)
+					.setFirstResult(pageNo*pageSize)
+					.setMaxResults(pageSize);
+
+			Long pages = (long) Math.ceil(size.doubleValue()/pageSize);
+			return new Response<TagByEvent>(size,typedQuery.getResultList(), pages);
+		} catch (Exception e) {
+			throw new CustomException(500, e);
+		}
+	}
+
+}
