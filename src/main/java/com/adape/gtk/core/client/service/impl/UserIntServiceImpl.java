@@ -1,6 +1,7 @@
 package com.adape.gtk.core.client.service.impl;
 
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 
@@ -48,6 +51,10 @@ public class UserIntServiceImpl implements UserIntService{
 	private String urlGet;
 	@Value("${UserGetFilter.url:#{'/user/getUsers'}}")
 	private String urlGetFilter;
+	@Value("${UserUpdatePasswordById.url:#{'/user/updatePasswordById'}}/")
+	private String urlUpdatePasswordById;
+	@Value("${UserLogin.url:#{'/user/login'}}/")
+	private String urlLogin;
 	
 
 	@Override
@@ -166,6 +173,75 @@ public class UserIntServiceImpl implements UserIntService{
 	      }
 		
 	      return responseEntity;
+	}
+	
+	@Override
+	public ResponseMessage updatePasswordById(String password, int id) {
+		ResponseMessage responseEntity = new ResponseMessage();
+		String url = String.format("%s%s%s", host, urlUpdatePasswordById, String.valueOf(id));
+		log.trace(CALLING, url);
+		try {
+			MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+			params.add("newPassword", new String(Base64.getEncoder().encode(password.getBytes())));
+
+			HttpHeaders headers = new HttpHeaders();
+			headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+			
+			HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(params, headers);
+			
+			ResponseEntity<Integer> response = clientRest.exchange(url, HttpMethod.POST, requestEntity,
+					new ParameterizedTypeReference<Integer>() {
+					});
+			responseEntity.setStatus(response.getStatusCodeValue());
+			if (response.getStatusCode().equals(HttpStatus.OK)) {
+				responseEntity.setMessage(response.getBody());
+				log.info("ClientRestResponse: {}", responseEntity);
+			} else {
+				responseEntity.setMessage(new ArrayList<>());
+				log.info("ClientRestResponse No OK: {}", response);
+			}
+
+		} catch (RestClientResponseException ex) {
+			responseEntity.setStatus(ex.getRawStatusCode());
+			responseEntity.setMessage(ex.getResponseBodyAsString());
+			log.error("ClientRestError: {}", ex);
+		}
+		return responseEntity;
+	}
+	
+	@Override
+	public ResponseMessage login(String email, String password) {
+		ResponseMessage responseEntity = new ResponseMessage();
+		String url = String.format("%s%s", host, urlLogin);
+		log.trace(CALLING, url);
+		try {
+			MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+			params.add("email", email);
+			params.add("password", new String(Base64.getEncoder().encode(password.getBytes())));
+
+			HttpHeaders headers = new HttpHeaders();
+			headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+			
+			HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(params, headers);
+			
+			ResponseEntity<Response<UserDTO>> response = clientRest.exchange(url, HttpMethod.POST, requestEntity,
+					new ParameterizedTypeReference<Response<UserDTO>>() {
+					});
+			responseEntity.setStatus(response.getStatusCodeValue());
+			if (response.getStatusCode().equals(HttpStatus.OK)) {
+				responseEntity.setMessage(response.getBody());
+				log.info("ClientRestResponse: {}", responseEntity);
+			} else {
+				responseEntity.setMessage(new ArrayList<>());
+				log.info("ClientRestResponse No OK: {}", response);
+			}
+
+		} catch (RestClientResponseException ex) {
+			responseEntity.setStatus(ex.getRawStatusCode());
+			responseEntity.setMessage(ex.getResponseBodyAsString());
+			log.error("ClientRestError: {}", ex);
+		}
+		return responseEntity;
 	}
 
 }

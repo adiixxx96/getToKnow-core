@@ -1,6 +1,8 @@
 package com.adape.gtk.core.service.impl;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -9,6 +11,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.adape.gtk.core.client.beans.BlockByUserDTO;
@@ -17,11 +20,17 @@ import com.adape.gtk.core.client.beans.CommentDTO;
 import com.adape.gtk.core.client.beans.CustomException;
 import com.adape.gtk.core.client.beans.DeregistrationByUserDTO;
 import com.adape.gtk.core.client.beans.Filter;
+import com.adape.gtk.core.client.beans.FilterElements;
+import com.adape.gtk.core.client.beans.GroupFilter;
 import com.adape.gtk.core.client.beans.MessageDTO;
 import com.adape.gtk.core.client.beans.NotificationDTO;
+import com.adape.gtk.core.client.beans.Page;
+import com.adape.gtk.core.client.beans.ReportByEventDTO;
 import com.adape.gtk.core.client.beans.Response;
+import com.adape.gtk.core.client.beans.Sorting;
 import com.adape.gtk.core.client.beans.UserByEventDTO;
 import com.adape.gtk.core.client.beans.UserDTO;
+import com.adape.gtk.core.client.beans.Sorting.Order;
 import com.adape.gtk.core.dao.UserByEventDao;
 import com.adape.gtk.core.dao.UserDao;
 import com.adape.gtk.core.dao.entity.BlockByUser;
@@ -31,6 +40,7 @@ import com.adape.gtk.core.dao.entity.DeregistrationByUser;
 import com.adape.gtk.core.dao.entity.Event;
 import com.adape.gtk.core.dao.entity.Message;
 import com.adape.gtk.core.dao.entity.Notification;
+import com.adape.gtk.core.dao.entity.ReportByEvent;
 import com.adape.gtk.core.dao.entity.User;
 import com.adape.gtk.core.dao.entity.UserByEvent;
 import com.adape.gtk.core.dao.entity.UserByEvent.UserByEventId;
@@ -40,6 +50,7 @@ import com.adape.gtk.core.service.CommentService;
 import com.adape.gtk.core.service.DeregistrationByUserService;
 import com.adape.gtk.core.service.MessageService;
 import com.adape.gtk.core.service.NotificationService;
+import com.adape.gtk.core.service.ReportByEventService;
 import com.adape.gtk.core.service.UserByEventService;
 import com.adape.gtk.core.service.UserService;
 import com.adape.gtk.core.utils.Constants;
@@ -85,47 +96,18 @@ public class UserServiceImpl implements UserService{
 	
 	@Autowired 
 	@Lazy
+	private ReportByEventService reportService;
+	
+	@Autowired 
+	@Lazy
 	private DeregistrationByUserService deregistrationService;
 	
 	@Override
 	public ResponseEntity<?> create(UserDTO userDto) {
 		try {
 			
-			List<UserByEventDTO> events = userDto.getEvents();
-			userDto.setEvents(null);
-
 			User user = parseUser(userDto);
 			User newUser = userDao.create(user);
-
-			// Create relationships start
-			
-			//UserByEvent start
-			ArrayList<UserByEvent> newEvents = null;
-			if (events != null) {
-				newEvents = new ArrayList<UserByEvent>();
-				for (UserByEventDTO dto : events) {
-					try {
-						if (dto.getEvent() != null)
-							newEvents.add(userByEventDao.create(UserByEvent.builder()
-									.user(User.builder().id(newUser.getId()).build())
-									.event(Event.builder().id(dto.getEvent().getId()).build())
-									.owner(dto.getOwner())
-									.participant(dto.getParticipant())
-									.registrationDate(dto.getRegistrationDate())
-									.id(UserByEventId.builder().userId(newUser.getId())
-											.eventId(dto.getEvent().getId())
-											.build())
-									.build()));
-					} catch (CustomException e) {
-						log.error(String.format(Constants.ENTITY_CREATE_ERROR, "UserByEvent",
-								Utils.printStackTraceToLog(e)));
-					}
-				}
-			}
-			newUser.setEvents(newEvents);
-			//UserByEvent end
-			
-			// Create relationships end
 
 			UserDTO newUserDto = parseUser(newUser, Utils.buildTree(List.of("")).children);
 
@@ -313,9 +295,12 @@ public class UserServiceImpl implements UserService{
 		List<CommentDTO> comments = null;
 		List<NotificationDTO> notifications = null;
 		List<BlockByUserDTO> blocks = null;
+		List<BlockByUserDTO> blockReports =  null;
+		List<ReportByEventDTO> reports = null;
 		List<DeregistrationByUserDTO> deregistrations = null;
 		List<UserByEventDTO> userByEvent = null;
 		List<ChatDTO> chats = null;
+		List<ChatDTO> chatsAsUser2 = null;
 		List<MessageDTO> messages = null;
 		
 		for (TreeNode<String> treeNode : params) {
@@ -361,6 +346,32 @@ public class UserServiceImpl implements UserService{
 				}
 			}
 			
+			if(base.equals("blockReports") || base.equals("all")) {
+				blockReports = new ArrayList<BlockByUserDTO>();
+				if (user.getBlockReports() != null) {
+					List<TreeNode<String>> newfrags = new ArrayList<TreeNode<String>>();
+					newfrags.addAll(frags);
+					newfrags.add(new TreeNode<String>("blockReports"));
+					for (BlockByUser bbe : user.getBlockReports()) {
+						BlockByUserDTO dto = blockService.parseBlockByUser(bbe,newfrags);
+					blockReports.add(dto);
+					}
+				}
+			}
+			
+			if(base.equals("reports") || base.equals("all")) {
+				reports = new ArrayList<ReportByEventDTO>();
+				if (user.getReports() != null) {
+					List<TreeNode<String>> newfrags = new ArrayList<TreeNode<String>>();
+					newfrags.addAll(frags);
+					newfrags.add(new TreeNode<String>("reports"));
+					for (ReportByEvent rbe : user.getReports()) {
+						ReportByEventDTO dto = reportService.parseReportByEvent(rbe,newfrags);
+						reports.add(dto);
+					}
+				}
+			}
+			
 			if(base.equals("deregistrations") || base.equals("all")) {
 				deregistrations = new ArrayList<DeregistrationByUserDTO>();
 				if (user.getDeregistrations() != null) {
@@ -400,6 +411,32 @@ public class UserServiceImpl implements UserService{
 				}
 			}
 			
+			if(base.equals("chats") || base.equals("all")) {
+				chats = new ArrayList<ChatDTO>();
+				if (user.getChats() != null) {
+					List<TreeNode<String>> newfrags = new ArrayList<TreeNode<String>>();
+					newfrags.addAll(frags);
+					newfrags.add(new TreeNode<String>("chats"));
+					for (Chat c : user.getChats()) {
+						ChatDTO dto = chatService.parseChat(c,newfrags);
+						chats.add(dto);
+					}
+				}
+			}
+			
+			if(base.equals("chatsAsUser2") || base.equals("all")) {
+				chatsAsUser2 = new ArrayList<ChatDTO>();
+				if (user.getChatsAsUser2() != null) {
+					List<TreeNode<String>> newfrags = new ArrayList<TreeNode<String>>();
+					newfrags.addAll(frags);
+					newfrags.add(new TreeNode<String>("chats"));
+					for (Chat c : user.getChatsAsUser2()) {
+						ChatDTO dto = chatService.parseChat(c,newfrags);
+						chatsAsUser2.add(dto);
+					}
+				}
+			}
+			
 			if(base.equals("messages") || base.equals("all")) {
 				messages = new ArrayList<MessageDTO>();
 				if (user.getMessages() != null) {
@@ -417,13 +454,31 @@ public class UserServiceImpl implements UserService{
 		
 		
 		// Remove base relationship entities
-		entity.setEvents(null);	
+		entity.setEvents(null);
+		entity.setComments(null);
+		entity.setNotifications(null);
+		entity.setChats(null);
+		entity.setChatsAsUser2(null);
+		entity.setMessages(null);
+		entity.setBlocks(null);
+		entity.setBlockReports(null);
+		entity.setReports(null);
+		entity.setDeregistrations(null);
 		
 		// Map base entity
 		userDTO = CustomMapper.map(entity, UserDTO.class);
 		
 		// Add parsed relationship entities to DTO 
-		userDTO.setEvents(userByEvent);		
+		userDTO.setEvents(userByEvent);
+		userDTO.setComments(comments);
+		userDTO.setNotifications(notifications);
+		userDTO.setChats(chats);
+		userDTO.setChatsAsUser2(chatsAsUser2);
+		userDTO.setMessages(messages);
+		userDTO.setBlocks(blocks);
+		userDTO.setBlockReports(blockReports);
+		userDTO.setReports(reports);
+		userDTO.setDeregistrations(deregistrations);
 		
 		return userDTO;
 	}
@@ -452,7 +507,7 @@ public class UserServiceImpl implements UserService{
 				userByEvent = oldUser.getEvents();
 			}
 			
-			//Set parameters of personCost relations.
+			//Set parameters of user relations.
 			user.setEvents(userByEvent);
 			
 			return user;
@@ -461,6 +516,55 @@ public class UserServiceImpl implements UserService{
 			log.error(Utils.printStackTraceToLog(e));
 			return null;
 		}
+	}
+	
+	@Override
+	public ResponseEntity<?> updatePasswordById(String password, Integer id) {
+		return ResponseEntity.ok(userDao.updatePasswordById(password, id));
+	}
+	
+	@Override
+	public ResponseEntity<?> login(String email, String password) {
+		
+		//Filter to find user with matching email and password
+				Filter filter = Filter.builder()
+		    			.groupFilter(GroupFilter.builder()
+		    					.operator(GroupFilter.Operator.AND)
+		    					.filterElements(Arrays.asList(
+		    							FilterElements.builder()
+		    							.key("email")
+		    							.value(email)
+		    							.type(FilterElements.FilterType.STRING)
+		    							.operator(FilterElements.OperatorType.EQUALS).build()
+		    							)).build())
+		    			.showParameters(List.of(""))
+		    			.page(Page.builder().pageNo(0).pageSize(Integer.MAX_VALUE).build())
+		    			.sorting(List.of(Sorting.builder().field("id").order(Order.DESC).build()))
+		    			.build();
+				
+				// Call bonus 'get' service to get filter bonuses
+				Response<UserDTO> userResp = new Response<UserDTO>();
+
+				try {
+					userResp = (Response<UserDTO>) get(filter).getBody();
+				} catch (Exception e) {
+					log.error(String.format(Constants.ENTITY_GET_ERROR, "User", Utils.printStackTraceToLog(e)));
+				}
+
+				if (userResp != null && userResp.getSize() > 0) {
+					
+					//Comparamos las contraseñas encriptadas
+					UserDTO existingUser = userResp.getResults().get(0);
+					if (existingUser.getPassword().equals(password)) {
+						log.info("Passwords matching");
+						return ResponseEntity.ok(userResp);
+					} else {
+						return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+					}
+					
+				} else {
+					return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+				}
 	}
 
 }

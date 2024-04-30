@@ -54,11 +54,15 @@ public class UserDTO implements Serializable{
 	
 	private List<BlockByUserDTO> blocks;
 	
+	private List<BlockByUserDTO> blockReports;
+	
 	private List<DeregistrationByUserDTO> deregistrations;
 	
 	private List<ReportByEventDTO> reports;
 	
 	private List<ChatDTO> chats;
+	
+	private List<ChatDTO> chatsAsUser2;
 	
 	private List<MessageDTO> messages;
 	

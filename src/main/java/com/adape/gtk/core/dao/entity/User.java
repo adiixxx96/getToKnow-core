@@ -77,8 +77,14 @@ public class User implements Serializable{
 	@OneToMany(mappedBy = "blocked")
 	private List<BlockByUser> blocks;
 	
+	@OneToMany(mappedBy = "reporter")
+	private List<BlockByUser> blockReports;
+	
 	@OneToMany(mappedBy = "user")
 	private List<DeregistrationByUser> deregistrations;
+	
+	@OneToMany(mappedBy = "reporter")
+	private List<ReportByEvent> reports;
 	
 	@OneToMany(mappedBy = "user1")
 	private List<Chat> chats;

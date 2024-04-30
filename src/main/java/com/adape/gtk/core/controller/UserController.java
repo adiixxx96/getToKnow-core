@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -50,10 +51,21 @@ public class UserController {
 		return userService.get(id);
 	}
 	
-	@PostMapping(value = "/getUser", produces = "application/json")
+	@PostMapping(value = "/getUsers", produces = "application/json")
 	@ResponseBody
 	public ResponseEntity<?> getUsers(@Valid @RequestBody Filter filter) {
 		return userService.get(filter);
+	}
+	
+	@PostMapping(value = "/updatePasswordById/{id}")
+	public ResponseEntity<?> updatePasswordById(@PathVariable("id") int id, @RequestParam(required = true, name = "newPassword") String newPassword) {
+		return userService.updatePasswordById(newPassword, id);
+	}
+	
+	@PostMapping(value = "/login")
+	public ResponseEntity<?> login (@RequestParam(required = true, name = "email") String email, 
+			@RequestParam(required = true, name = "password") String password) {
+		return userService.login(email, password);
 	}
 	
 	

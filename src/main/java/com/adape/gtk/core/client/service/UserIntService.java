@@ -12,4 +12,6 @@ public interface UserIntService {
 	ResponseMessage get(Integer id, int userId);
 	ResponseMessage get(Filter filter, int userId);
 	ResponseMessage delete(List<Integer> id, int userId);
+	ResponseMessage updatePasswordById(String password, int id);
+	ResponseMessage login(String email, String password);
 }

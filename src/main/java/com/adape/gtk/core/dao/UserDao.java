@@ -7,4 +7,6 @@ import com.adape.gtk.core.dao.entity.User;
 @Component
 public interface UserDao extends CRUDDao<User, Integer>{
 	
+	int updatePasswordById(String password, Integer id);
+	
 }
