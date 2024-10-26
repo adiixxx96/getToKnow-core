@@ -3,9 +3,11 @@ package com.adape.gtk.core.dao.impl;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -19,6 +21,7 @@ import org.springframework.stereotype.Component;
 
 import com.adape.gtk.core.dao.EventDao;
 import com.adape.gtk.core.dao.entity.Event;
+import com.adape.gtk.core.dao.entity.User;
 import com.adape.gtk.core.dao.entity.repository.EventRepository;
 import com.adape.gtk.core.client.beans.CustomException;
 import com.adape.gtk.core.client.beans.Filter;
@@ -109,14 +112,18 @@ public class EventDaoImpl implements EventDao{
 	public Response<Event> get(Filter filter) throws CustomException{
 		CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
 		CriteriaQuery<Event> query = criteriaBuilder.createQuery(Event.class);
+		CriteriaQuery<Integer> cq = criteriaBuilder.createQuery(Integer.class);
 		Root<Event> root = query.from(Event.class);
+		Root<Event> rootCount = cq.from(Event.class);
 		List<Predicate> predicates = new ArrayList<>();
+		List<Predicate> predicatesCount = new ArrayList<>();
 		GroupFilter filters = filter.getGroupFilter();
 		Page page = filter.getPage();
 		List<Sorting> sorting = filter.getSorting();
 		List<String> errors = new ArrayList<String>();
 		
 		predicates = QueryUtils.generatePredicate(filters, criteriaBuilder, root, errors, query);
+		predicatesCount = QueryUtils.generatePredicate(filters, criteriaBuilder, rootCount, errors, cq);
 		
 		if (sorting.size() > 0) {
 			try {
@@ -142,7 +149,7 @@ public class EventDaoImpl implements EventDao{
 		}
 		try {
 			
-			CriteriaQuery<Event> selectCount = query.select(root.get("id")).distinct(true).where(predicates.toArray(new Predicate[predicates.size()]));
+			CriteriaQuery<Integer> selectCount = cq.select(rootCount.get("id")).distinct(true).where(predicatesCount.toArray(new Predicate[predicatesCount.size()]));
 			Long size = Long.valueOf(entityManager.createQuery(selectCount).getResultList().size());
 			
 			CriteriaQuery<Event> select = query.select(root).distinct(true).where(predicates.toArray(new Predicate[predicates.size()]));
@@ -156,5 +163,47 @@ public class EventDaoImpl implements EventDao{
 			throw new CustomException(500, e);
 		}
 	}
+	
+	@Override
+	public List<Integer> getEventIdsByBody(List<String> words) {
+	    String sql = "SELECT id FROM event ";
+	    List<String> conditions = new ArrayList<>();
+	        
+	    for (String word : words) {
+	     conditions.add("(title LIKE '%"+word+"%' OR description LIKE '%"+word+"%')");
+	    }       
+	    if (!conditions.isEmpty()) {
+	        sql += "WHERE " + String.join(" AND ", conditions);
+	    }
+	    
+	    Query query = entityManager.createNativeQuery(sql);
+	  
+	    List<Object> resultList = query.getResultList();
+	    List<Integer> resultIds = new ArrayList<Integer>();
+	    resultIds = resultList.stream().map(o -> (Integer) o).collect(Collectors.toList());
+
+		return resultIds;
+	}
+	
+	@Override
+	public List<Integer> getEventIdsByParticipantsNumber(int min, int max) {
+	    String sql = "SELECT event_id FROM user_by_event WHERE participant = 1 AND deregistration_date IS NULL ";	    
+	    if (min != 0 && max != 100) {
+	    	sql += "GROUP BY event_id HAVING COUNT(*) >= "+min+" AND COUNT(*) <= "+max;
+	    } else if (min != 0) {
+	    	sql += "GROUP BY event_id HAVING COUNT(*) >= "+min;
+	    } else {
+	    	sql += "GROUP BY event_id HAVING COUNT(*) <= "+max;
+	    }
+	    
+	    Query query = entityManager.createNativeQuery(sql);
+	  
+	    List<Object> resultList = query.getResultList();
+	    List<Integer> resultIds = new ArrayList<Integer>();
+	    resultIds = resultList.stream().map(o -> (Integer) o).collect(Collectors.toList());
+
+		return resultIds;
+	}
+	
 	
 }

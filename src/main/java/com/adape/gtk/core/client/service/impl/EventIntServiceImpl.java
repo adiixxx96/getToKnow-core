@@ -48,6 +48,10 @@ public class EventIntServiceImpl implements EventIntService{
 	private String urlGet;
 	@Value("${EventGetFilter.url:#{'/event/getEvents'}}")
 	private String urlGetFilter;
+	@Value("${EventGetEventIdsByBody.url:#{'/event/getEventIdsByBody'}}")
+	private String urlGetEventIdsByBody;
+	@Value("${EventGetEventIdsByParticipantsNumber.url:#{'/event/getEventIdsByParticipantsNumber'}}/")
+	private String urlGetEventIdsByParticipantsNumber;
 	
 
 	@Override
@@ -76,7 +80,7 @@ public class EventIntServiceImpl implements EventIntService{
 	@Override
 	public ResponseMessage edit(EventDTO Dto, int userId) {
 	    ResponseMessage responseEntity = new ResponseMessage();
-	    String url = String.format("%s%s", host, urlUpdate);
+	    String url = String.format("%s%s%s", host, urlUpdate, Dto.getId());
 	    log.trace(CALLING, url);
 	    final HttpHeaders headers = new HttpHeaders();
 	    headers.setContentType(MediaType.APPLICATION_JSON);
@@ -166,6 +170,58 @@ public class EventIntServiceImpl implements EventIntService{
 	      }
 		
 	      return responseEntity;
+	}
+	
+	@Override
+	public ResponseMessage getEventIdsByBody(List<String> words) {
+		ResponseMessage responseEntity = new ResponseMessage();
+		String url = String.format("%s%s", host, urlGetEventIdsByBody);
+		log.trace(CALLING, url);
+		HttpEntity<List<String>> request = new HttpEntity<List<String>>(words);
+		try {
+			ResponseEntity<List<Integer>> response = clientRest.exchange(url, HttpMethod.POST, request,
+					new ParameterizedTypeReference<List<Integer>>() {
+					});
+			responseEntity.setStatus(response.getStatusCodeValue());
+			if (response.getStatusCode().equals(HttpStatus.OK)) {
+				responseEntity.setMessage(response.getBody());
+				log.info("ClientRestResponse: {}", responseEntity);
+			} else {
+				responseEntity.setMessage(new ArrayList<>());
+				log.info("ClientRestResponse No OK: {}", response);
+			}
+
+		} catch (RestClientResponseException ex) {
+			responseEntity.setStatus(ex.getRawStatusCode());
+			responseEntity.setMessage(ex.getResponseBodyAsString());
+			log.error("ClientRestError: {}", ex);
+		}
+		return responseEntity;
+	}
+	
+	@Override
+	public ResponseMessage getEventIdsByParticipantsNumber(int min, int max) {
+		ResponseMessage responseEntity = new ResponseMessage();
+		String url = String.format("%s%s%s", host, urlGetEventIdsByParticipantsNumber, min+"/"+max);
+		log.trace(CALLING, url);;
+		try {
+			ResponseEntity<List<Integer>> response = clientRest.exchange(url, HttpMethod.GET, null, 
+					new ParameterizedTypeReference<List<Integer>>() {});
+			responseEntity.setStatus(response.getStatusCodeValue());
+			if(response.getStatusCode().equals(HttpStatus.OK)) {
+				responseEntity.setMessage(response.getBody());
+				log.info("ClientRestResponse: {}", responseEntity);
+			} else {
+				responseEntity.setMessage(new ArrayList<>());
+				log.info("ClientRestResponse No OK: {}", response);
+			}
+			
+		} catch (RestClientResponseException ex) {
+			responseEntity.setStatus(ex.getRawStatusCode());
+			responseEntity.setMessage(ex.getResponseBodyAsString());
+			log.error("ClientRestError: {}", ex);
+		}
+		return responseEntity;
 	}
 
 }

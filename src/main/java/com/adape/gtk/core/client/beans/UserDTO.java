@@ -43,6 +43,8 @@ public class UserDTO implements Serializable{
 	
 	private Timestamp birthDate;
 	
+	private int age;
+	
 	@Builder.Default
 	private Boolean active = true;
 	

@@ -160,6 +160,7 @@ public class CategoryIntServiceImpl implements CategoryIntService{
 	        }
 	       
 	      } catch (RestClientResponseException ex) {
+	    	ex.printStackTrace();
 	        responseEntity.setStatus(ex.getRawStatusCode());
 	        responseEntity.setMessage(ex.getResponseBodyAsString());
 	        log.error("ClientRestError: {}", ex);

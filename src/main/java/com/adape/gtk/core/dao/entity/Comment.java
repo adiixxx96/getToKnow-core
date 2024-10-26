@@ -53,7 +53,8 @@ public class Comment implements Serializable{
 	@JoinColumn(name = "event_id")
 	private Event event;
 	
-	@Column(name = "parent_id")
+	@ManyToOne
+	@JoinColumn(name = "parent_id")
 	private Comment parent;
 
 }

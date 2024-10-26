@@ -2,28 +2,34 @@ package com.adape.gtk.core.client.beans;
 
 public enum ProvinceEnum {
 
-	A_CORUNA(1), ALAVA(2), ALBACETE(3), ALICANTE(4), ALMERIA(5), ASTURIAS(6),
-	AVILA(7), BADAJOZ(8), BALEARES(9), BARCELONA(10), BURGOS(11), CACERES(12),
-	CADIZ(13), CANTABRIA(14), CASTELLON(15), CIUDAD_REAL(16), CORDOBA(17), CUENCA(18),
-	GIRONA(19), GRANADA(20), GUADALAJARA(21), GIPUZKOA(22), HUELVA(23), HUESCA(24),
-	JAEN(25), LA_RIOJA(26), LAS_PALMAS(27), LEON(28), LLEIDA(29), LUGO(30),
-	MADRID(31), MALAGA(32), MURCIA(33), NAVARRA(34), OURENSE(35), PALENCIA(36),
-	PONTEVEDRA(37), SALAMANCA(38), SEGOVIA(39), SEVILLA(40), SORIA(41), TARRAGONA(42),
-	SANTA_CRUZ_DE_TENERIFE(43), TERUEL(44), TOLEDO(45), VALENCIA(46), VALLADOLID(47),
-	VIZCAYA(48), ZAMORA(49), ZARAGOZA(50), CEUTA(51), MELILLA(52);
+	A_CORUNA(1, "A Coruña"), ALAVA(2, "Álava"), ALBACETE(3, "Albacete"), ALICANTE(4, "Alicante"), ALMERIA(5, "Almería"), ASTURIAS(6, "Asturias"),
+	AVILA(7, "Ávila"), BADAJOZ(8, "Badajoz"), BALEARES(9, "Baleares"), BARCELONA(10, "Barcelona"), BURGOS(11, "Burgos"), CACERES(12, "Cáceres"),
+	CADIZ(13, "Cádiz"), CANTABRIA(14, "Cantabria"), CASTELLON(15, "Castellón"), CIUDAD_REAL(16, "Ciudad Real"), CORDOBA(17, "Córdoba"), CUENCA(18, "Cuenca"),
+	GIRONA(19, "Girona"), GRANADA(20, "Granada"), GUADALAJARA(21, "Guadalajara"), GIPUZKOA(22, "Gipuzkoa"), HUELVA(23, "Huelva"), HUESCA(24, "Huesca"),
+	JAEN(25, "Jaén"), LA_RIOJA(26, "La Rioja"), LAS_PALMAS(27, "Las Palmas"), LEON(28, "León"), LLEIDA(29, "Lleida"), LUGO(30, "Lugo"),
+	MADRID(31, "Madrid"), MALAGA(32, "Málaga"), MURCIA(33, "Murcia"), NAVARRA(34, "Navarra"), OURENSE(35, "Ourense"), PALENCIA(36, "Palencia"),
+	PONTEVEDRA(37, "Pontevedra"), SALAMANCA(38, "Salamanca"), SEGOVIA(39, "Segovia"), SEVILLA(40, "Sevilla"), SORIA(41, "Soria"), TARRAGONA(42, "Tarragona"),
+	SANTA_CRUZ_DE_TENERIFE(43, "Santa Cruz de Terenife"), TERUEL(44, "Teruel"), TOLEDO(45, "Toledo"), VALENCIA(46, "Valencia"), VALLADOLID(47, "Valladolid"),
+	VIZCAYA(48, "Vizcaya"), ZAMORA(49, "Zamora"), ZARAGOZA(50, "Zaragoza"), CEUTA(51, "Ceuta"), MELILLA(52, "Melilla");
 	
-	private int type;
+	private int id;
+	private String name;
 	
-	ProvinceEnum(int type){
-		this.type = type;
+	ProvinceEnum(int id, String name){
+		this.id = id;
+		this.name = name;
 	}
 	
-	public int getType() {
-		return this.type;
+	public int getId() {
+		return this.id;
 	}
 	
-	public static ProvinceEnum setStatus(int type){
-	       switch(type){
+	public String getName() {
+		return name;
+	}
+	
+	public static ProvinceEnum setProvince(int id){
+	       switch(id){
 	          case 1: return ProvinceEnum.A_CORUNA;
 	          case 2: return ProvinceEnum.ALAVA;
 	          case 3: return ProvinceEnum.ALBACETE;
