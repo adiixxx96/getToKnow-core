@@ -21,7 +21,6 @@ import org.springframework.stereotype.Component;
 
 import com.adape.gtk.core.dao.EventDao;
 import com.adape.gtk.core.dao.entity.Event;
-import com.adape.gtk.core.dao.entity.User;
 import com.adape.gtk.core.dao.entity.repository.EventRepository;
 import com.adape.gtk.core.client.beans.CustomException;
 import com.adape.gtk.core.client.beans.Filter;

@@ -43,7 +43,7 @@ public class UserIntServiceImpl implements UserIntService{
 	private String host;
 	@Value("${UserCreate.url:#{'/user/createUser'}}")
 	private String urlCreate;
-	@Value("${UserEdit.url:#{'/user/editUser'}}/")
+	@Value("${UserEdit.url:#{'/user/editUser'}}")
 	private String urlUpdate;
 	@Value("${UserDelete.url:#{'/user/deleteUser'}}")
 	private String urlDelete;

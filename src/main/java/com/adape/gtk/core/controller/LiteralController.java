@@ -50,7 +50,7 @@ public class LiteralController {
 		return literalService.get(id);
 	}
 	
-	@PostMapping(value = "/getLiteral", produces = "application/json")
+	@PostMapping(value = "/getLiterals", produces = "application/json")
 	@ResponseBody
 	public ResponseEntity<?> getLiterals(@Valid @RequestBody Filter filter) {
 		return literalService.get(filter);

@@ -64,4 +64,6 @@ public class EventDTO implements Serializable{
 	
 	private List<DeregistrationByUserDTO> deregistrations;
 	
+	private UserDTO eventOwner;
+	
 }

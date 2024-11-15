@@ -68,4 +68,6 @@ public class UserDTO implements Serializable{
 	
 	private List<MessageDTO> messages;
 	
+	private Boolean allowChat;
+	
 }

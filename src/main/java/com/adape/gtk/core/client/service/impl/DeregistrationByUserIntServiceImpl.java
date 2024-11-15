@@ -38,7 +38,7 @@ public class DeregistrationByUserIntServiceImpl implements DeregistrationByUserI
 	private static final String ENTITY_TYPE = "Deregistration";
 	@Value("#{environment.webserviceGTKHost}")
 	private String host;
-	@Value("${DeregistrationByUserCreate.url:#{'/deregistrationByUser/createDeregistrationyUser'}}")
+	@Value("${DeregistrationByUserCreate.url:#{'/deregistrationByUser/createDeregistrationByUser'}}")
 	private String urlCreate;
 	@Value("${DeregistrationByUserEdit.url:#{'/deregistrationByUser/editDeregistrationByUser'}}/")
 	private String urlUpdate;

@@ -184,11 +184,8 @@ public class EventServiceImpl implements EventService{
 			
 			if (id == event.getId()) {
 				
-				EventDTO oldEvent = null;
-				
                 if (eventDao.existsById(id)) {
 				
-                	List<String> showParamsReturn = new ArrayList<>();
 					try {
 						
 						Event newEvent = eventDao.edit(event);

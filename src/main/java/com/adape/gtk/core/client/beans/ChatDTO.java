@@ -1,6 +1,7 @@
 package com.adape.gtk.core.client.beans;
 
 import java.io.Serializable;
+import java.sql.Timestamp;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -25,6 +26,8 @@ public class ChatDTO implements Serializable{
 	 */
 	private static final long serialVersionUID = -2364642042421304363L;
 
+	private Integer id;
+	
 	private UserDTO user1;
 
 	private UserDTO user2;
@@ -32,5 +35,11 @@ public class ChatDTO implements Serializable{
 	private Boolean status;
 	
 	private List<MessageDTO> messages;
+	
+	private Timestamp creationDate;
+	
+	private Timestamp recentDate;
+	
+	private UserDTO userTo;
 	
 }

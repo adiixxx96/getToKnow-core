@@ -140,11 +140,8 @@ public class UserServiceImpl implements UserService{
 			
 			if (id == user.getId()) {
 				
-				UserDTO oldUser = null;
-				
                 if (userDao.existsById(id)) {
 				
-                	List<String> showParamsReturn = new ArrayList<>();
 					try {
 						
 						User newUser = userDao.edit(user);
@@ -164,6 +161,10 @@ public class UserServiceImpl implements UserService{
 												.user(User.builder().id(newUser.getId()).build())
 												.id(UserByEventId.builder().userId(newUser.getId())
 														.eventId(dto.getEvent().getId()).build())
+												.registrationDate(dto.getRegistrationDate())
+												.participant(dto.getParticipant()).owner(dto.getOwner())
+												.deregistrationDate(dto.getDeregistrationDate())
+												.deregistrationVoluntary(dto.getDeregistrationVoluntary())
 												.build());
 							}
 
@@ -386,7 +387,7 @@ public class UserServiceImpl implements UserService{
 				}
 			}
 			
-			if(base.equals("userByEvent") || base.equals("all")) {
+			if(base.equals("events") || base.equals("all")) {
 				userByEvent = new ArrayList<UserByEventDTO>();
 				if (user.getEvents() != null) {
 					List<TreeNode<String>> newfrags = new ArrayList<TreeNode<String>>();

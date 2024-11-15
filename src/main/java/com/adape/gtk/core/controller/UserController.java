@@ -35,10 +35,10 @@ public class UserController {
 		return userService.create(userDto);
 	}
 	
-	@PutMapping(value = "/editUser/{id}")
+	@PutMapping(value = "/editUser")
 	@ResponseBody
-	public ResponseEntity<?> editUser(@PathVariable("id") int id, @Valid @RequestBody UserDTO userDto) {
-		return userService.edit(id, userDto);
+	public ResponseEntity<?> editUser(@Valid @RequestBody UserDTO userDto) {
+		return userService.edit(userDto.getId(), userDto);
 	}
 	
 	@DeleteMapping(value = "/deleteUser")

@@ -14,8 +14,6 @@ import com.adape.gtk.core.dao.ChatDao;
 import com.adape.gtk.core.dao.MessageDao;
 import com.adape.gtk.core.dao.UserDao;
 import com.adape.gtk.core.dao.entity.Chat;
-import com.adape.gtk.core.dao.entity.Chat.ChatId;
-import com.adape.gtk.core.dao.entity.Chat.ChatId.ChatIdBuilder;
 import com.adape.gtk.core.dao.entity.Message;
 import com.adape.gtk.core.dao.entity.User;
 import com.adape.gtk.core.service.ChatService;
@@ -236,11 +234,9 @@ public class MessageServiceImpl implements MessageService{
 			
 			// Chat
 			if(chatDTO != null) {
-				ChatIdBuilder id = ChatId.builder();
-				id.user1Id(chatDTO.getUser1().getId());
-				id.user2Id(chatDTO.getUser1().getId());
-				chat = chatDao.get(id.build());
-				
+				if(chatDTO.getId() != null) {
+					chat = chatDao.get(chatDTO.getId());	
+				}
 			} else if (oldMessage != null){
 				chat = oldMessage.getChat();
 			}
@@ -254,7 +250,7 @@ public class MessageServiceImpl implements MessageService{
 				user = oldMessage.getUser();
 			}
 			
-			//Set parameters of personCost relations.
+			//Set parameters of message relations.
 			message.setChat(chat);
 			message.setUser(user);
 			
