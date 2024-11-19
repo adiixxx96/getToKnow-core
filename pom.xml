@@ -131,10 +131,4 @@
 			</plugin>
 		</plugins>
 	</build>
-	<distributionManagement>
-        <repository>
-            <id>github</id>
-            <url>https://maven.pkg.github.com/adiixxx96/getToKnow-core</url>
-        </repository>
-    </distributionManagement>
 </project>
