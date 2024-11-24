@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.adape.gtk</groupId>
 	<artifactId>gtk-core</artifactId>
-	<version>1.0.1</version>
+	<version>1.0.2</version>
 	<name>gtk-core</name>
 	<description>Web project getToKnow</description>
 	<properties>
@@ -131,4 +131,10 @@
 			</plugin>
 		</plugins>
 	</build>
+	<distributionManagement>
+	    <repository>
+	        <id>github</id>
+	        <url>https://maven.pkg.github.com/adiixxx96/getToKnow-core</url>
+	    </repository>
+	</distributionManagement>
 </project>
