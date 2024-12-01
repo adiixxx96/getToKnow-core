@@ -49,7 +49,7 @@ public class Notification implements Serializable{
 	@Column(name = "creation_date")
 	private Timestamp creationDate;
 	
-	@Column(name = "read")
-	private boolean read;
+	@Column(name = "is_read")
+	private boolean isRead;
 	
 }

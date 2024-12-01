@@ -12,4 +12,7 @@ public interface EventIntService {
 	ResponseMessage get(Integer id, int userId);
 	ResponseMessage get(Filter filter, int userId);
 	ResponseMessage delete(List<Integer> id, int userId);
+	
+	ResponseMessage getEventIdsByBody(List<String> words);
+	ResponseMessage getEventIdsByParticipantsNumber(int min, int max);
 }

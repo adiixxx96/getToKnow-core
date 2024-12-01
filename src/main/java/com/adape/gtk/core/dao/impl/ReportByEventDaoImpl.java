@@ -25,6 +25,7 @@ import com.adape.gtk.core.client.beans.Response;
 import com.adape.gtk.core.client.beans.Sorting;
 
 import com.adape.gtk.core.dao.ReportByEventDao;
+import com.adape.gtk.core.dao.entity.Notification;
 import com.adape.gtk.core.dao.entity.ReportByEvent;
 import com.adape.gtk.core.dao.entity.repository.ReportByEventRepository;
 import com.adape.gtk.core.utils.Constants;
@@ -110,14 +111,18 @@ public class ReportByEventDaoImpl implements ReportByEventDao{
 	public Response<ReportByEvent> get(Filter filter) throws CustomException{
 		CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
 		CriteriaQuery<ReportByEvent> query = criteriaBuilder.createQuery(ReportByEvent.class);
+		CriteriaQuery<Integer> cq = criteriaBuilder.createQuery(Integer.class);
 		Root<ReportByEvent> root = query.from(ReportByEvent.class);
+		Root<ReportByEvent> rootCount = cq.from(ReportByEvent.class);
 		List<Predicate> predicates = new ArrayList<>();
+		List<Predicate> predicatesCount = new ArrayList<>();
 		GroupFilter filters = filter.getGroupFilter();
 		Page page = filter.getPage();
 		List<Sorting> sorting = filter.getSorting();
 		List<String> errors = new ArrayList<String>();
 		
 		predicates = QueryUtils.generatePredicate(filters, criteriaBuilder, root, errors, query);
+		predicatesCount = QueryUtils.generatePredicate(filters, criteriaBuilder, rootCount, errors, cq);
 		
 		if (sorting.size() > 0) {
 			try {
@@ -143,7 +148,7 @@ public class ReportByEventDaoImpl implements ReportByEventDao{
 		}
 		try {
 			
-			CriteriaQuery<ReportByEvent> selectCount = query.select(root.get("id")).distinct(true).where(predicates.toArray(new Predicate[predicates.size()]));
+			CriteriaQuery<Integer> selectCount = cq.select(rootCount.get("id")).distinct(true).where(predicatesCount.toArray(new Predicate[predicatesCount.size()]));
 			Long size = Long.valueOf(entityManager.createQuery(selectCount).getResultList().size());
 			
 			CriteriaQuery<ReportByEvent> select = query.select(root).distinct(true).where(predicates.toArray(new Predicate[predicates.size()]));

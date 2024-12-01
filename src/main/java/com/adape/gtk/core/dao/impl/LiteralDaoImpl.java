@@ -25,6 +25,7 @@ import com.adape.gtk.core.client.beans.Response;
 import com.adape.gtk.core.client.beans.Sorting;
 
 import com.adape.gtk.core.dao.LiteralDao;
+import com.adape.gtk.core.dao.entity.DeregistrationByUser;
 import com.adape.gtk.core.dao.entity.Literal;
 import com.adape.gtk.core.dao.entity.repository.LiteralRepository;
 import com.adape.gtk.core.utils.Constants;
@@ -110,14 +111,18 @@ public class LiteralDaoImpl implements LiteralDao{
 	public Response<Literal> get(Filter filter) throws CustomException{
 		CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
 		CriteriaQuery<Literal> query = criteriaBuilder.createQuery(Literal.class);
+		CriteriaQuery<Integer> cq = criteriaBuilder.createQuery(Integer.class);
 		Root<Literal> root = query.from(Literal.class);
+		Root<Literal> rootCount = cq.from(Literal.class);
 		List<Predicate> predicates = new ArrayList<>();
+		List<Predicate> predicatesCount = new ArrayList<>();
 		GroupFilter filters = filter.getGroupFilter();
 		Page page = filter.getPage();
 		List<Sorting> sorting = filter.getSorting();
 		List<String> errors = new ArrayList<String>();
 		
 		predicates = QueryUtils.generatePredicate(filters, criteriaBuilder, root, errors, query);
+		predicatesCount = QueryUtils.generatePredicate(filters, criteriaBuilder, rootCount, errors, cq);
 		
 		if (sorting.size() > 0) {
 			try {
@@ -143,7 +148,7 @@ public class LiteralDaoImpl implements LiteralDao{
 		}
 		try {
 			
-			CriteriaQuery<Literal> selectCount = query.select(root.get("id")).distinct(true).where(predicates.toArray(new Predicate[predicates.size()]));
+			CriteriaQuery<Integer> selectCount = cq.select(rootCount.get("id")).distinct(true).where(predicatesCount.toArray(new Predicate[predicatesCount.size()]));
 			Long size = Long.valueOf(entityManager.createQuery(selectCount).getResultList().size());
 			
 			CriteriaQuery<Literal> select = query.select(root).distinct(true).where(predicates.toArray(new Predicate[predicates.size()]));

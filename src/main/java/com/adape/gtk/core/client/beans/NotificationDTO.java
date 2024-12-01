@@ -34,6 +34,6 @@ public class NotificationDTO implements Serializable{
 	private Timestamp creationDate;
 	
 	@Builder.Default
-	private Boolean read = false;
+	private boolean isRead = false;
 	
 }

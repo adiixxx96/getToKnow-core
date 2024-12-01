@@ -50,9 +50,21 @@ public class EventController {
 		return eventService.get(id);
 	}
 	
-	@PostMapping(value = "/getEvent", produces = "application/json")
+	@PostMapping(value = "/getEvents", produces = "application/json")
 	@ResponseBody
 	public ResponseEntity<?> getEvents(@Valid @RequestBody Filter filter) {
 		return eventService.get(filter);
+	}
+	
+	@PostMapping(value = "/getEventIdsByBody", produces = "application/json")
+	@ResponseBody
+	public List<Integer> getEventIdsByBody(@RequestBody List<String> words) {
+		return eventService.getEventIdsByBody(words);
+	}
+	
+	@GetMapping(value = "/getEventIdsByParticipantsNumber/{min}/{max}", produces = "application/json")
+	@ResponseBody
+	public List<Integer> getEventIdsByParticipantsNumber(@PathVariable("min") int min, @PathVariable("max") int max) {
+		return eventService.getEventIdsByParticipantsNumber(min, max);
 	}
 }

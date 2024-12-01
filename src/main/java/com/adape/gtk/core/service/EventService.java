@@ -11,5 +11,9 @@ public interface EventService extends CRUDService<EventDTO, Integer>{
 	Event parseEvent(EventDTO event);
 	
 	EventDTO parseEvent(Event event, List<TreeNode<String>> params);
+	
+	List<Integer> getEventIdsByBody(List<String> words);
+	
+	List<Integer> getEventIdsByParticipantsNumber(int min, int max);
 
 }

@@ -48,7 +48,7 @@ public class Event implements Serializable{
 	private String description;
 	
 	@ManyToOne
-	@JoinColumn(name = "category_id", insertable = false, updatable = false)
+	@JoinColumn(name = "category_id")
 	private Category category;
 	
 	@Column(name = "event_date")
@@ -73,6 +73,9 @@ public class Event implements Serializable{
 	
 	@Column(name = "max_participants")
 	private Integer maxParticipants;
+	
+	@Column(name="image")
+	private String image;
 	
 	@OneToMany(mappedBy ="event")
 	private List<TagByEvent> tags;

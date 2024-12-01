@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.adape.gtk.core.dao.CommentDao;
+import com.adape.gtk.core.dao.entity.BlockByUser;
 import com.adape.gtk.core.dao.entity.Comment;
 import com.adape.gtk.core.dao.entity.repository.CommentRepository;
 import com.adape.gtk.core.client.beans.CustomException;
@@ -109,14 +110,18 @@ public class CommentDaoImpl implements CommentDao{
 	public Response<Comment> get(Filter filter) throws CustomException{
 		CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
 		CriteriaQuery<Comment> query = criteriaBuilder.createQuery(Comment.class);
+		CriteriaQuery<Integer> cq = criteriaBuilder.createQuery(Integer.class);
 		Root<Comment> root = query.from(Comment.class);
+		Root<Comment> rootCount = cq.from(Comment.class);
 		List<Predicate> predicates = new ArrayList<>();
+		List<Predicate> predicatesCount = new ArrayList<>();
 		GroupFilter filters = filter.getGroupFilter();
 		Page page = filter.getPage();
 		List<Sorting> sorting = filter.getSorting();
 		List<String> errors = new ArrayList<String>();
 		
 		predicates = QueryUtils.generatePredicate(filters, criteriaBuilder, root, errors, query);
+		predicatesCount = QueryUtils.generatePredicate(filters, criteriaBuilder, rootCount, errors, cq);
 		
 		if (sorting.size() > 0) {
 			try {
@@ -142,7 +147,7 @@ public class CommentDaoImpl implements CommentDao{
 		}
 		try {
 			
-			CriteriaQuery<Comment> selectCount = query.select(root.get("id")).distinct(true).where(predicates.toArray(new Predicate[predicates.size()]));
+			CriteriaQuery<Integer> selectCount = cq.select(rootCount.get("id")).distinct(true).where(predicatesCount.toArray(new Predicate[predicatesCount.size()]));
 			Long size = Long.valueOf(entityManager.createQuery(selectCount).getResultList().size());
 			
 			CriteriaQuery<Comment> select = query.select(root).distinct(true).where(predicates.toArray(new Predicate[predicates.size()]));

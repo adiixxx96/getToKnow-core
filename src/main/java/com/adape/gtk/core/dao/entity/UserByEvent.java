@@ -73,8 +73,13 @@ public class UserByEvent implements Serializable{
 	private boolean participant;
 	
 	@Column(name = "registration_date")
-	@NotNull
 	private Timestamp registrationDate;
+	
+	@Column(name = "deregistration_date")
+	private Timestamp deregistrationDate;
+	
+	@Column(name = "deregistration_voluntary")
+	private Boolean deregistrationVoluntary;
 	
 	public UserByEvent(User user, Event event) {
 		// Create primary key

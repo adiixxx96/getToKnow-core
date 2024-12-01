@@ -21,9 +21,11 @@ import com.adape.gtk.core.client.beans.ReportByEventDTO;
 import com.adape.gtk.core.client.beans.Response;
 import com.adape.gtk.core.client.beans.TagByEventDTO;
 import com.adape.gtk.core.client.beans.UserByEventDTO;
+import com.adape.gtk.core.dao.CategoryDao;
 import com.adape.gtk.core.dao.EventDao;
 import com.adape.gtk.core.dao.TagByEventDao;
 import com.adape.gtk.core.dao.UserByEventDao;
+import com.adape.gtk.core.dao.entity.Category;
 import com.adape.gtk.core.dao.entity.Comment;
 import com.adape.gtk.core.dao.entity.DeregistrationByUser;
 import com.adape.gtk.core.dao.entity.Event;
@@ -63,6 +65,9 @@ public class EventServiceImpl implements EventService{
 	
 	@Autowired
 	private CategoryService categoryService;
+	
+	@Autowired
+	private CategoryDao categoryDao;
 	
 	@Autowired
 	@Lazy
@@ -179,11 +184,8 @@ public class EventServiceImpl implements EventService{
 			
 			if (id == event.getId()) {
 				
-				EventDTO oldEvent = null;
-				
                 if (eventDao.existsById(id)) {
 				
-                	List<String> showParamsReturn = new ArrayList<>();
 					try {
 						
 						Event newEvent = eventDao.edit(event);
@@ -243,6 +245,11 @@ public class EventServiceImpl implements EventService{
 												.user(User.builder().id(dto.getUser().getId()).build())
 												.id(UserByEventId.builder().eventId(newEvent.getId())
 														.userId(dto.getUser().getId()).build())
+												.participant(dto.getParticipant())
+												.owner(dto.getOwner())
+												.registrationDate(dto.getRegistrationDate())
+												.deregistrationDate(dto.getDeregistrationDate())
+												.deregistrationVoluntary(dto.getDeregistrationVoluntary())
 												.build());
 							}
 
@@ -426,7 +433,7 @@ public class EventServiceImpl implements EventService{
 				}
 			}
 			
-			if(base.equals("tagByEvent") || base.equals("all")) {
+			if(base.equals("tags") || base.equals("all")) {
 				tagByEvent = new ArrayList<TagByEventDTO>();
 				if (event.getTags() != null) {
 					List<TreeNode<String>> newfrags = new ArrayList<TreeNode<String>>();
@@ -438,7 +445,7 @@ public class EventServiceImpl implements EventService{
 					}
 				}
 			}
-			if(base.equals("userByEvent") || base.equals("all")) {
+			if(base.equals("users") || base.equals("all")) {
 				userByEvent = new ArrayList<UserByEventDTO>();
 				if (event.getUsers() != null) {
 					List<TreeNode<String>> newfrags = new ArrayList<TreeNode<String>>();
@@ -452,18 +459,24 @@ public class EventServiceImpl implements EventService{
 			}
 		}
 		
-		
-		
 		// Remove base relationship entities
 		entity.setTags(null);		
-		entity.setUsers(null);	
+		entity.setUsers(null);
+		entity.setCategory(null);
+		entity.setComments(null);
+		entity.setDeregistrations(null);
+		entity.setReports(null);
 		
 		// Map base entity
 		eventDTO = CustomMapper.map(entity, EventDTO.class);
 		
 		// Add parsed relationship entities to DTO 
 		eventDTO.setTags(tagByEvent);
-		eventDTO.setUsers(userByEvent);		
+		eventDTO.setUsers(userByEvent);	
+		eventDTO.setCategory(category);
+		eventDTO.setComments(comments);
+		eventDTO.setDeregistrations(deregistrations);
+		eventDTO.setReports(reports);
 		
 		return eventDTO;
 	}
@@ -476,12 +489,15 @@ public class EventServiceImpl implements EventService{
 
 			List<TagByEventDTO> tagByEventDTO= eventDTO.getTags();
 			List<UserByEventDTO> userByEventDTO= eventDTO.getUsers();
+			CategoryDTO categoryDTO = eventDTO.getCategory();
 
 			eventDTO.setTags(null);
 			eventDTO.setUsers(null);
+			eventDTO.setCategory(null);
 			
 			List<TagByEvent> tagByEvent= new ArrayList<TagByEvent>();
 			List<UserByEvent> userByEvent= new ArrayList<UserByEvent>();
+			Category category = null;
 			
 			Event event = CustomMapper.map(eventDTO, Event.class);
 			Event oldEvent = eventDao.get(event.getId());
@@ -504,9 +520,19 @@ public class EventServiceImpl implements EventService{
 				userByEvent = oldEvent.getUsers();
 			}
 			
+			//Category
+			if(categoryDTO != null) {
+				if(categoryDTO.getId() != null) {
+					category = categoryDao.get(categoryDTO.getId());	
+				}
+			} else if (oldEvent != null){
+				category = oldEvent.getCategory();
+			}
+			
 			//Set parameters of personCost relations.
 			event.setTags(tagByEvent);
 			event.setUsers(userByEvent);
+			event.setCategory(category);
 			
 			return event;
 			
@@ -514,6 +540,28 @@ public class EventServiceImpl implements EventService{
 			log.error(Utils.printStackTraceToLog(e));
 			return null;
 		}
+	}
+	
+	@Override
+	public List<Integer> getEventIdsByBody(List<String> words) {
+		List<Integer> eventIdsByBody = new ArrayList<Integer>();
+		try {
+			eventIdsByBody = eventDao.getEventIdsByBody(words);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return eventIdsByBody;
+	}
+	
+	@Override
+	public List<Integer> getEventIdsByParticipantsNumber(int min, int max) {
+		List<Integer> eventIdsByParticipantsNumber = new ArrayList<Integer>();
+		try {
+			eventIdsByParticipantsNumber = eventDao.getEventIdsByParticipantsNumber(min, max);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return eventIdsByParticipantsNumber;
 	}
 
 }

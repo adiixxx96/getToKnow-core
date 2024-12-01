@@ -33,8 +33,7 @@ public class MessageDTO implements Serializable{
 	
 	private UserDTO user;
 	
-	@Builder.Default
-	private Boolean read = false;
+	private Boolean isRead = false;
 	
 	private Timestamp creationDate;
 	

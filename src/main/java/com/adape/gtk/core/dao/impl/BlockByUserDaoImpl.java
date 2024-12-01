@@ -26,6 +26,7 @@ import com.adape.gtk.core.client.beans.Sorting;
 
 import com.adape.gtk.core.dao.BlockByUserDao;
 import com.adape.gtk.core.dao.entity.BlockByUser;
+import com.adape.gtk.core.dao.entity.User;
 import com.adape.gtk.core.dao.entity.repository.BlockByUserRepository;
 import com.adape.gtk.core.utils.Constants;
 import com.adape.gtk.core.utils.QueryUtils;
@@ -110,14 +111,18 @@ public class BlockByUserDaoImpl implements BlockByUserDao{
 	public Response<BlockByUser> get(Filter filter) throws CustomException{
 		CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
 		CriteriaQuery<BlockByUser> query = criteriaBuilder.createQuery(BlockByUser.class);
+		CriteriaQuery<Integer> cq = criteriaBuilder.createQuery(Integer.class);
 		Root<BlockByUser> root = query.from(BlockByUser.class);
+		Root<BlockByUser> rootCount = cq.from(BlockByUser.class);
 		List<Predicate> predicates = new ArrayList<>();
+		List<Predicate> predicatesCount = new ArrayList<>();
 		GroupFilter filters = filter.getGroupFilter();
 		Page page = filter.getPage();
 		List<Sorting> sorting = filter.getSorting();
 		List<String> errors = new ArrayList<String>();
 		
 		predicates = QueryUtils.generatePredicate(filters, criteriaBuilder, root, errors, query);
+		predicatesCount = QueryUtils.generatePredicate(filters, criteriaBuilder, rootCount, errors, cq);
 		
 		if (sorting.size() > 0) {
 			try {
@@ -143,7 +148,7 @@ public class BlockByUserDaoImpl implements BlockByUserDao{
 		}
 		try {
 			
-			CriteriaQuery<BlockByUser> selectCount = query.select(root.get("id")).distinct(true).where(predicates.toArray(new Predicate[predicates.size()]));
+			CriteriaQuery<Integer> selectCount = cq.select(rootCount.get("id")).distinct(true).where(predicatesCount.toArray(new Predicate[predicatesCount.size()]));
 			Long size = Long.valueOf(entityManager.createQuery(selectCount).getResultList().size());
 			
 			CriteriaQuery<BlockByUser> select = query.select(root).distinct(true).where(predicates.toArray(new Predicate[predicates.size()]));

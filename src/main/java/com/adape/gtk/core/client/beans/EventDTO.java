@@ -50,6 +50,10 @@ public class EventDTO implements Serializable{
 	
 	private Integer maxParticipants;
 	
+	private int participantsNumber;
+	
+	private String image;
+	
 	private List<TagByEventDTO> tags;
 	
 	private List<CommentDTO> comments;
@@ -59,5 +63,7 @@ public class EventDTO implements Serializable{
 	private List<ReportByEventDTO> reports;
 	
 	private List<DeregistrationByUserDTO> deregistrations;
+	
+	private UserDTO eventOwner;
 	
 }

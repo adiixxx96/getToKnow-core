@@ -76,7 +76,7 @@ public class MessageIntServiceImpl implements MessageIntService{
 	@Override
 	public ResponseMessage edit(MessageDTO Dto, int userId) {
 	    ResponseMessage responseEntity = new ResponseMessage();
-	    String url = String.format("%s%s", host, urlUpdate);
+	    String url = String.format("%s%s%s", host, urlUpdate, Dto.getId());
 	    log.trace(CALLING, url);
 	    final HttpHeaders headers = new HttpHeaders();
 	    headers.setContentType(MediaType.APPLICATION_JSON);

@@ -25,7 +25,6 @@ import com.adape.gtk.core.client.beans.Response;
 import com.adape.gtk.core.client.beans.Sorting;
 import com.adape.gtk.core.dao.ChatDao;
 import com.adape.gtk.core.dao.entity.Chat;
-import com.adape.gtk.core.dao.entity.Chat.ChatId;
 import com.adape.gtk.core.dao.entity.repository.ChatRepository;
 import com.adape.gtk.core.utils.Constants;
 import com.adape.gtk.core.utils.QueryUtils;
@@ -67,43 +66,10 @@ public class ChatDaoImpl implements ChatDao{
 		}
 		return newChat;
 	}
-
-	@Override
-	public void delete(ChatId id) throws CustomException {
-		try {	
-			chatRepository.deleteById(id);
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new CustomException(500, e);
-		}
-	}
-
-	@Override
-	public boolean existsById(ChatId id) {
-		if (chatRepository.existsById(id)) {
-			log.info(String.format(Constants.ENTITY_EXIST, "Chat"));
-			return true;
-		} else {
-			log.info(String.format(Constants.ENTITY_NOT_EXIST, "Chat"));
-			return false;
-		}
-	}
 	
 	@Override
-	public Chat get(ChatId id) {
-		Optional<Chat> optChat = chatRepository.findById(id);
-		if (optChat.isEmpty()) {
-			log.info(String.format(Constants.ENTITY_GET_NOT_FOUND, "Chat", "id: " + id));
-			return null;
-		} else {
-			log.info(String.format(Constants.ENTITY_GET_SUCCESSFULLY, "Chat", "id: " + id));	
-			return optChat.get();
-		}
-	}
-
-	@Override
-	public List<ChatId> delete(List<Chat> id) throws CustomException {
-		List<ChatId> deletedIds = new ArrayList<ChatId>();
+	public List<Integer> delete(List<Chat> id) throws CustomException {
+		List<Integer> deletedIds = new ArrayList<Integer>();
 		try {
 			for (Chat entity : id) {
 				chatRepository.delete(entity);
@@ -116,23 +82,52 @@ public class ChatDaoImpl implements ChatDao{
 		return deletedIds;
 	}
 
+
+	@Override
+	public boolean existsById(Integer id) {
+		if (chatRepository.existsById(id)) {
+			log.info(String.format(Constants.ENTITY_EXIST, "Chat"));
+			return true;
+		} else {
+			log.info(String.format(Constants.ENTITY_NOT_EXIST, "Chat"));
+			return false;
+		}
+	}
+	
+	@Override
+	public Chat get(Integer id) {
+		Optional<Chat> optChat = chatRepository.findById(id);
+		if (optChat.isEmpty()) {
+			log.info(String.format(Constants.ENTITY_GET_NOT_FOUND, "Chat", "id: " + id));
+			return null;
+		} else {
+			log.info(String.format(Constants.ENTITY_GET_SUCCESSFULLY, "Chat", "id: " + id));	
+			return optChat.get();
+		}
+	}
+
+
 	@Override
 	public Response<Chat> get(Filter filter) throws CustomException {
 		CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
 		CriteriaQuery<Chat> query = criteriaBuilder.createQuery(Chat.class);
+		CriteriaQuery<Integer> cq = criteriaBuilder.createQuery(Integer.class);
 		Root<Chat> root = query.from(Chat.class);
+		Root<Chat> rootCount = cq.from(Chat.class);
 		List<Predicate> predicates = new ArrayList<>();
+		List<Predicate> predicatesCount = new ArrayList<>();
 		GroupFilter filters = filter.getGroupFilter();
 		Page page = filter.getPage();
 		List<Sorting> sorting = filter.getSorting();
 		List<String> errors = new ArrayList<String>();
 		
 		predicates = QueryUtils.generatePredicate(filters, criteriaBuilder, root, errors, query);
+		predicatesCount = QueryUtils.generatePredicate(filters, criteriaBuilder, rootCount, errors, cq);
 		
 		if (sorting.size() > 0) {
 			try {
 				List<Order> orderList = QueryUtils.getSorting(sorting, criteriaBuilder, root);
-				query.orderBy(orderList);	
+				query.orderBy(orderList);
 			} catch (Exception e) {
 				throw new CustomException(500, e);
 			}
@@ -153,7 +148,7 @@ public class ChatDaoImpl implements ChatDao{
 		}
 		try {
 			
-			CriteriaQuery<Chat> selectCount = query.select(root.get("id")).distinct(true).where(predicates.toArray(new Predicate[predicates.size()]));
+			CriteriaQuery<Integer> selectCount = cq.select(rootCount.get("id")).distinct(true).where(predicatesCount.toArray(new Predicate[predicatesCount.size()]));
 			Long size = Long.valueOf(entityManager.createQuery(selectCount).getResultList().size());
 			
 			CriteriaQuery<Chat> select = query.select(root).distinct(true).where(predicates.toArray(new Predicate[predicates.size()]));

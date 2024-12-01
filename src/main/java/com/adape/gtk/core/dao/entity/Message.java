@@ -45,18 +45,15 @@ public class Message implements Serializable{
 	private String message;
 	
 	@ManyToOne
-	@JoinColumns({
-		@JoinColumn(name = "user1_id", referencedColumnName = "user1_id"),
-		@JoinColumn(name = "user2_id", referencedColumnName = "user2_id")
-	})
+	@JoinColumn(name = "chat_id")
 	private Chat chat;
 	
 	@ManyToOne
 	@JoinColumn(name = "user_id")
 	private User user;
 	
-	@Column(name = "read")
-	private boolean read;
+	@Column(name = "is_read")
+	private Boolean isRead;
 	
 	@Column(name = "creation_date")
 	private Timestamp creationDate;

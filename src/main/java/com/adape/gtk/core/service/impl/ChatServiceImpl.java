@@ -21,9 +21,9 @@ import com.adape.gtk.core.dao.ChatDao;
 import com.adape.gtk.core.dao.MessageDao;
 import com.adape.gtk.core.dao.UserDao;
 import com.adape.gtk.core.dao.entity.Chat;
+import com.adape.gtk.core.dao.entity.Event;
 import com.adape.gtk.core.dao.entity.Message;
 import com.adape.gtk.core.dao.entity.User;
-import com.adape.gtk.core.dao.entity.Chat.ChatId;
 import com.adape.gtk.core.service.ChatService;
 import com.adape.gtk.core.service.MessageService;
 import com.adape.gtk.core.service.UserService;
@@ -83,7 +83,7 @@ public class ChatServiceImpl implements ChatService{
 	}
 
 	@Override
-	public ResponseEntity<?> edit(ChatId id, ChatDTO chatDto) {
+	public ResponseEntity<?> edit(Integer id, ChatDTO chatDto) {
 		try {
 			Chat chat = parseChat(chatDto);
 			if (id.equals(chat.getId())) {
@@ -122,50 +122,32 @@ public class ChatServiceImpl implements ChatService{
 	}
 
 	@Override
-	public ResponseEntity<?> delete(List<ChatId> id) {
+	public ResponseEntity<?> delete(List<Integer> chatDtos) {
 		try {
-			String msgOk = String.format(Constants.ENTITY_DELETE_SUCCESSFULLY, "Chat", id.toString());
-			List<Chat> chat = id.stream().map(e-> Chat.builder().id(e).build()).collect(Collectors.toList());;
-			
-			HttpHeaders responseHeaders = new HttpHeaders();
-			
-			List<ChatId> deletedIds = chatDao.delete(chat);
+			String msgOk = String.format(Constants.ENTITY_DELETE_SUCCESSFULLY, "Chat", chatDtos.toString());
+			List<Chat> chats = new ArrayList<Chat>();
+			for(Integer e : chatDtos) {
+				chats.add(Chat.builder().id(e).build());
+			}
+			List<Integer> deletedIds = chatDao.delete(chats);
 			log.info(msgOk);
-			
+			HttpHeaders responseHeaders = new HttpHeaders();
 			responseHeaders.set(Constants.HEADER_ENTITY_ID, deletedIds.stream().map(String::valueOf).collect(Collectors.joining(Constants.ENTITY_BREAK)));
 			responseHeaders.set(Constants.HEADER_ENTITY_ACTION, "Delete");
 			return ResponseEntity.status(HttpStatus.OK).headers(responseHeaders).body(msgOk);
 		} catch (CustomException e) {
-			log.error(String.format(Constants.ENTITY_DELETE_ERROR, "Chat", Utils.printStackTraceToLog(e)));
+			log.error(String.format(Constants.ENTITY_DELETE_ERROR, "Chat",Utils.printStackTraceToLog(e)));
 			return ResponseEntity.status(e.getCode()).body(e.getMsg().toString());
 		}
 	}
 
 	@Override
-	public ResponseEntity<?> get(ChatId id) {
+	public ResponseEntity<?> get(Integer id) {
 		Chat chat = chatDao.get(id);
 		try {
 			if (chat != null) {
 				log.info(String.format(Constants.ENTITY_GET_SUCCESSFULLY, "Chat", chat.toString()));
 				ChatDTO chatDto = parseChat(chat, Utils.buildTree(List.of("all")).children);
-				return ResponseEntity.ok(chatDto);
-			} else {
-				log.info(String.format(Constants.ENTITY_GET_NOT_FOUND, "Chat", ""));
-				return ResponseEntity.noContent().build();
-			}
-		} catch (Exception e) {
-			log.error(String.format(Constants.ENTITY_GET_ERROR, "Chat", Utils.printStackTraceToLog(e)));
-			return ResponseEntity.internalServerError().build();
-		}
-	}
-
-	@Override
-	public ResponseEntity<?> get(ChatId id, List<String> showParameters) {
-		Chat chat = chatDao.get(id);
-		try {
-			if (chat != null) {
-				log.info(String.format(Constants.ENTITY_GET_SUCCESSFULLY, "Chat", chat.toString()));
-				ChatDTO chatDto = parseChat(chat, Utils.buildTree(showParameters).children);
 				return ResponseEntity.ok(chatDto);
 			} else {
 				log.info(String.format(Constants.ENTITY_GET_NOT_FOUND, "Chat", ""));
@@ -226,7 +208,7 @@ public class ChatServiceImpl implements ChatService{
 			}
 			
 			if(base.equals("user2") || base.equals("all")) {
-				user2DTO = userService.parseUser(chat.getUser1(), frags);
+				user2DTO = userService.parseUser(chat.getUser2(), frags);
 			}
 			
 			if(base.equals("messages") || base.equals("all")) {
@@ -263,7 +245,7 @@ public class ChatServiceImpl implements ChatService{
 			List<Message> messagesList =new ArrayList<Message>();
 			
 			UserDTO user1DTO = chatDTO.getUser1();
-			UserDTO user2DTO = chatDTO.getUser1();
+			UserDTO user2DTO = chatDTO.getUser2();
 			List<MessageDTO> messagesDTO = chatDTO.getMessages();
 
 			chatDTO.setUser1(null);
@@ -273,7 +255,7 @@ public class ChatServiceImpl implements ChatService{
 			Chat chat = CustomMapper.map(chatDTO, Chat.class);
 			Chat oldChat = null;
 			try {
-				oldChat = chatDao.get(new ChatId(user1DTO.getId(), user2DTO.getId()));
+				oldChat = chatDao.get(chat.getId());
 			} catch (Exception e) {
 				log.error(Utils.printStackTraceToLog(e));
 			}	
@@ -306,9 +288,6 @@ public class ChatServiceImpl implements ChatService{
 			chat.setUser1(user1);
 			chat.setUser2(user2);
 			chat.setMessages(messagesList);
-			
-			//Set id
-			chat.setId(new ChatId(user1.getId(), user2.getId()));
 			
 			return chat;
 			

@@ -50,7 +50,7 @@ public class TagController {
 		return tagService.get(id);
 	}
 	
-	@PostMapping(value = "/getTag", produces = "application/json")
+	@PostMapping(value = "/getTags", produces = "application/json")
 	@ResponseBody
 	public ResponseEntity<?> getTags(@Valid @RequestBody Filter filter) {
 		return tagService.get(filter);

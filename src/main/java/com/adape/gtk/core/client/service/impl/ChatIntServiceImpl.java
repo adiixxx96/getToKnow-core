@@ -42,7 +42,7 @@ public class ChatIntServiceImpl implements ChatIntService{
 	private String urlCreate;
 	@Value("${ChatEdit.url:#{'/chat/editChat'}}/")
 	private String urlUpdate;
-	@Value("${ChatDelete.url:#{'/chat/deleteChatsObjects'}}")
+	@Value("${ChatDelete.url:#{'/chat/deleteChat'}}")
 	private String urlDelete;
 	@Value("${ChatGet.url:#{'/chat/getChat'}}/")
 	private String urlGet;
@@ -76,7 +76,7 @@ public class ChatIntServiceImpl implements ChatIntService{
 	@Override
 	public ResponseMessage edit(ChatDTO Dto, int userId) {
 	    ResponseMessage responseEntity = new ResponseMessage();
-	    String url = String.format("%s%s", host, urlUpdate);
+	    String url = String.format("%s%s%s", host, urlUpdate, Dto.getId());
 	    log.trace(CALLING, url);
 	    final HttpHeaders headers = new HttpHeaders();
 	    headers.setContentType(MediaType.APPLICATION_JSON);

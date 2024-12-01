@@ -50,7 +50,7 @@ public class CategoryController {
 		return categoryService.get(id);
 	}
 	
-	@PostMapping(value = "/getCategory", produces = "application/json")
+	@PostMapping(value = "/getCategories", produces = "application/json")
 	@ResponseBody
 	public ResponseEntity<?> getCategories(@Valid @RequestBody Filter filter) {
 		return categoryService.get(filter);
