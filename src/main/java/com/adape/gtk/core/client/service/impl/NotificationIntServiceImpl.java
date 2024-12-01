@@ -76,7 +76,7 @@ public class NotificationIntServiceImpl implements NotificationIntService{
 	@Override
 	public ResponseMessage edit(NotificationDTO Dto, int userId) {
 	    ResponseMessage responseEntity = new ResponseMessage();
-	    String url = String.format("%s%s", host, urlUpdate);
+	    String url = String.format("%s%s%s", host, urlUpdate, Dto.getId());
 	    log.trace(CALLING, url);
 	    final HttpHeaders headers = new HttpHeaders();
 	    headers.setContentType(MediaType.APPLICATION_JSON);

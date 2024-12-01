@@ -50,7 +50,7 @@ public class NotificationController {
 		return notificationService.get(id);
 	}
 	
-	@PostMapping(value = "/getNotification", produces = "application/json")
+	@PostMapping(value = "/getNotifications", produces = "application/json")
 	@ResponseBody
 	public ResponseEntity<?> getNotifications(@Valid @RequestBody Filter filter) {
 		return notificationService.get(filter);
